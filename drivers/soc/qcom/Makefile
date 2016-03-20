@@ -114,3 +114,4 @@ obj-$(CONFIG_QCOM_QDSS_BRIDGE) += qdss_bridge.o
 obj-$(CONFIG_CPUMAXFREQ) += cpumaxfreq.o
 obj-$(CONFIG_SERIAL_NUM) += serial_num.o
 obj-$(CONFIG_SECBOOT_FUSE) += secboot_fuse.o
+obj-$(CONFIG_STATE_NOTIFIER)		+= state_notifier.o
