@@ -162,6 +162,11 @@ void compute_work_load(struct devfreq_dev_status *stats,
 	spin_unlock(&sample_lock);
 }
 
+#ifdef CONFIG_ADRENO_IDLER
+extern int adreno_idler(struct devfreq_dev_status stats, struct devfreq *devfreq,
+		 unsigned long *freq);
+#endif
+
 /* Trap into the TrustZone, and call funcs there. */
 static int __secure_tz_reset_entry2(unsigned int *scm_data, u32 size_scm_data,
 					bool is_64)
@@ -373,7 +378,14 @@ static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq,
 		/* adreno_idler has asked to bail out now */
 		return 0;
 	}
+
+#ifdef CONFIG_ADRENO_IDLER
+	if (adreno_idler(stats, devfreq, freq)) {
+		/* adreno_idler has asked to bail out now */
+		return 0;
+	}
 #endif
+
 	priv->bin.total_time += stats.total_time;
 	priv->bin.busy_time += stats.busy_time;
 
