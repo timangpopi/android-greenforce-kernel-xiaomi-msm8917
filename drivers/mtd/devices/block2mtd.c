@@ -281,10 +281,9 @@ static struct block2mtd_dev *add_device(char *devname, int erase_size)
 		goto err_destroy_mutex;
 	}
 	list_add(&dev->list, &blkmtd_device_list);
-	pr_info("mtd%d: [%s] erase_size = %dKiB [%d]\n",
-		dev->mtd.index,
-		dev->mtd.name + strlen("block2mtd: "),
-		dev->mtd.erasesize >> 10, dev->mtd.erasesize);
+	INFO("mtd%d: [%s] erase_size = %dKiB [%d]", dev->mtd.index,
+			dev->mtd.name + DSTRLEN("block2mtd: "),
+			dev->mtd.erasesize >> 10, dev->mtd.erasesize);
 	return dev;
 
 err_destroy_mutex:
@@ -454,10 +453,8 @@ static void block2mtd_exit(void)
 		struct block2mtd_dev *dev = list_entry(pos, typeof(*dev), list);
 		block2mtd_sync(&dev->mtd);
 		mtd_device_unregister(&dev->mtd);
-		mutex_destroy(&dev->write_mutex);
-		pr_info("mtd%d: [%s] removed\n",
-			dev->mtd.index,
-			dev->mtd.name + strlen("block2mtd: "));
+		INFO("mtd%d: [%s] removed", dev->mtd.index,
+				dev->mtd.name + DSTRLEN("block2mtd: "));
 		list_del(&dev->list);
 		block2mtd_free_device(dev);
 	}

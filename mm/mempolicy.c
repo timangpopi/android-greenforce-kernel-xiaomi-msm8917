@@ -2822,9 +2822,15 @@ out:
 void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
 {
 	char *p = buffer;
-	nodemask_t nodes = NODE_MASK_NONE;
-	unsigned short mode = MPOL_DEFAULT;
-	unsigned short flags = 0;
+	int l;
+	nodemask_t nodes;
+	unsigned short mode;
+	unsigned short flags = pol ? pol->flags : 0;
+
+	/*
+	 * Sanity check:  room for longest mode, flag and some nodes
+	 */
+	VM_BUG_ON(maxlen < DSTRLEN("interleave") + DSTRLEN("relative") + 16);
 
 	if (pol && pol != &default_policy && !(pol->flags & MPOL_F_MORON)) {
 		mode = pol->mode;
