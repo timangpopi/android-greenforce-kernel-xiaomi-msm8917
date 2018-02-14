@@ -60,9 +60,10 @@
 #define MAX_WSA_CODEC_NAME_LENGTH 80
 #define MSM_DT_MAX_PROP_SIZE 80
 
-#define EXT_CLASS_D_EN_DELAY 11000
-#define EXT_CLASS_D_DIS_DELAY 3000
-#define EXT_CLASS_D_DELAY_DELTA 2100
+//This config will provide 50% duty cycle, incrasing fidelity.
+#define EXT_CLASS_D_EN_DELAY 7000
+#define EXT_CLASS_D_DIS_DELAY 7000
+#define EXT_CLASS_D_DELAY_DELTA 500
 
 #if defined(CONFIG_C3N_SMB358) || defined(CONFIG_C3B_BQ2560X) || defined(CONFIG_D1_ROSY)
 #else
