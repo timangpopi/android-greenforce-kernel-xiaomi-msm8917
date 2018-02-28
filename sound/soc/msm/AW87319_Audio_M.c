@@ -174,21 +174,16 @@ unsigned char AW87319_Audio_Speaker(void)
 {
 	aw87319_hw_on();
 
-	I2C_write_reg(0x02, 0x28);
-	I2C_write_reg(0x03, 0x05);
-	I2C_write_reg(0x04, 0x04);
-	I2C_write_reg(0x05, 0x0D);
-	#if defined CONFIG_D1_ROSY
-	I2C_write_reg(0x06, 0x05);
-	#else
-	I2C_write_reg(0x06, 0x03);
-	#endif
-	I2C_write_reg(0x07, 0x52);
-	I2C_write_reg(0x08, 0x28);
-	I2C_write_reg(0x09, 0x02);
-
-	I2C_write_reg(0x01, 0x03);
-	I2C_write_reg(0x01, 0x07);
+	I2C_write_reg(0x02, 0x28);		// BATSAFE -> Battery: 3.5V -> Boost 5.5V
+	I2C_write_reg(0x03, 0x07);		// BOV (boost output voltage) -> 8.5V (Maximum)
+	I2C_write_reg(0x04, 0x07);		// BP (boost max coil peak current) ->  4A (Maximum)
+	I2C_write_reg(0x05, 0x0E);		// Gain (Default 24dB), set it to 25.5dB (1dB less than Maximum)
+	I2C_write_reg(0x06, 0x07);		// AGC3_Po set it to 1.2W for 8 Ohms and 1.6W for 6 Ohms).
+	I2C_write_reg(0x07, 0x52);		// AGC3 (should not be edited)
+	I2C_write_reg(0x08, 0x38);		// AGC2 010: 1.8W@8Ω - 2.4W@6Ω, set it to 011: 011: 2.1W@8Ω 2.8W@6Ω 
+	I2C_write_reg(0x09, 0x02);		// AGC1 (should not be edited)
+	I2C_write_reg(0x01, 0x03);              // CHIP disable; Class D Enable; Boost Enable
+	I2C_write_reg(0x01, 0x07);		// CHIP Enable; Class D Enable; Boost Enable
 
 	return 0;
 }
