@@ -106,6 +106,8 @@ core-$(CONFIG_NET) += arch/arm64/net/
 core-$(CONFIG_KVM) += arch/arm64/kvm/
 core-$(CONFIG_XEN) += arch/arm64/xen/
 core-$(CONFIG_CRYPTO) += arch/arm64/crypto/
+core-$(CONFIG_ALUCARD_HOTPLUG) += arch/arm64/hotplug/ALUCARD/
+core-$(CONFIG_ASMP) += arch/arm64/hotplug/AUTOSMP/
 libs-y		:= arch/arm64/lib/ $(libs-y)
 libs-$(CONFIG_EFI_STUB) += drivers/firmware/efi/libstub/
 
