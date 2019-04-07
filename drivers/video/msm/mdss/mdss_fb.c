@@ -287,6 +287,14 @@ static int lcd_backlight_registered;
 				out = LINEAR_CONVERT(v, bl_min, bl_max, min_bright, max_bright); \
 				} while (0)
 
+#define MDSS_BRIGHT_TO_BL2(out, v, bl_min, bl_max, min_bright, max_bright) do {\
+				if (v <= min_bright) out = bl_min; \
+				else if (v <= MAX_BL_LUTS) out = backlight_luts[v - 1]; \
+				else \
+				out = LINEAR_CONVERT(v, backlight_luts[MAX_BL_LUTS - 1], bl_max, \
+					MAX_BL_LUTS, max_bright); \
+				} while (0)
+
 static void mdss_fb_set_bl_brightness(struct led_classdev *led_cdev,
 				      enum led_brightness value)
 {
