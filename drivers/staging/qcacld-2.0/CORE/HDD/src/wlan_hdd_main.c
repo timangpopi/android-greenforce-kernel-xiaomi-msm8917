@@ -136,7 +136,7 @@ extern int hdd_hostapd_stop (struct net_device *dev);
 #include "tl_shim.h"
 #include "wlan_hdd_oemdata.h"
 #include "sirApi.h"
-
+#include "if_smart_antenna.h"
 #ifdef CNSS_GENL
 #include <net/cnss_nl.h>
 #endif
@@ -187,6 +187,9 @@ static struct kparam_string fwpath = {
 static char *country_code;
 static int   enable_11d = -1;
 static int   enable_dfs_chan_scan = -1;
+#ifdef FEATURE_LARGE_PREALLOC
+static char *version_string = QWLAN_VERSIONSTR;
+#endif
 
 #ifndef MODULE
 static int wlan_hdd_inited;
@@ -17342,6 +17345,9 @@ int hdd_wlan_startup(struct device *dev, v_VOID_t *hif_sc)
 #endif
    }
 
+   /* Register Smart Antenna Module */
+   smart_antenna_attach();
+
 #ifdef FEATURE_WLAN_CH_AVOID
 #ifdef CONFIG_CNSS
    vos_get_wlan_unsafe_channel(pHddCtx->unsafe_channel_list,
@@ -18222,6 +18228,10 @@ static int hdd_driver_init( void)
    pr_info("%s: loading driver v%s\n", WLAN_MODULE_NAME,
            QWLAN_VERSIONSTR TIMER_MANAGER_STR MEMORY_DEBUG_STR);
 
+#ifdef CONFIG_VOS_MEM_PRE_ALLOC
+   wcnss_prealloc_reset();
+#endif /* CONFIG_VOS_MEM_PRE_ALLOC */
+
    do {
 
 #ifndef MODULE
@@ -18290,7 +18300,9 @@ static int hdd_driver_init( void)
 
    return ret_status;
 }
-
+#ifdef FEATURE_LARGE_PREALLOC
+EXPORT_SYMBOL(hdd_driver_init);
+#endif
 /**---------------------------------------------------------------------------
 
   \brief hdd_module_init() - Init Function
@@ -18302,6 +18314,7 @@ static int hdd_driver_init( void)
   \return - 0 for success, non zero for failure
 
   --------------------------------------------------------------------------*/
+#ifndef FEATURE_LARGE_PREALLOC
 #ifdef MODULE
 static int __init hdd_module_init ( void)
 {
@@ -18314,6 +18327,7 @@ static int __init hdd_module_init ( void)
    return 0;
 }
 #endif /* #ifdef MODULE */
+#endif /* #ifndef FEATURE_LARGE_PREALLOC*/
 
 static struct timer_list unload_timer;
 static bool unload_timer_started;
@@ -18483,8 +18497,13 @@ static void hdd_driver_exit(void)
 
    vos_preClose( &pVosContext );
 
+   /* deregister Smart Antenna Module */
+   smart_antenna_deattach();
 #ifdef TIMER_MANAGER
    vos_timer_exit();
+#endif
+#ifdef CONFIG_VOS_MEM_PRE_ALLOC
+   wcnss_prealloc_reset();
 #endif
 #ifdef MEMORY_DEBUG
    adf_net_buf_debug_exit();
@@ -18500,6 +18519,9 @@ done:
    hdd_wlan_wakelock_destroy();
    pr_info("%s: driver unloaded\n", WLAN_MODULE_NAME);
 }
+#ifdef FEATURE_LARGE_PREALLOC
+EXPORT_SYMBOL(hdd_driver_exit);
+#endif
 
 /**---------------------------------------------------------------------------
 
@@ -18512,6 +18534,7 @@ done:
   \return - None
 
   --------------------------------------------------------------------------*/
+#ifndef FEATURE_LARGE_PREALLOC
 static void __exit hdd_module_exit(void)
 {
    hdd_driver_exit();
@@ -18605,6 +18628,7 @@ static int con_mode_handler(const char *kmessage,
 #endif
 #endif /* #ifdef MODULE */
 
+#endif
 /**---------------------------------------------------------------------------
 
   \brief hdd_get_conparam() -
@@ -20857,6 +20881,7 @@ void hdd_initialize_adapter_common(hdd_adapter_t *adapter)
 }
 
 //Register the module init/exit functions
+#ifndef FEATURE_LARGE_PREALLOC
 module_init(hdd_module_init);
 module_exit(hdd_module_exit);
 
@@ -20895,3 +20920,26 @@ module_param(enable_11d, int,
 module_param(country_code, charp,
              S_IRUSR | S_IRGRP | S_IROTH);
 
+#else /* FEATURE_LARGE_PREALLOC */
+
+/**
+ * register_wlan_module_parameters_callback() - set module params
+ * @con_mode_set: con_mode
+ * @country_code_set: pointer to country code
+ * @version_string_set: pointer to version string
+ *
+ * At the time of driver startup, set basic initial params
+ *
+ * No return
+ */
+void register_wlan_module_parameters_callback(int con_mode_set,
+                                char* country_code_set,
+                                char* version_string_set
+)
+{
+	con_mode = con_mode_set;
+	country_code = country_code_set;
+	version_string = version_string_set;
+}
+EXPORT_SYMBOL(register_wlan_module_parameters_callback);
+#endif /* #ifndef FEATURE_LARGE_PREALLOC */

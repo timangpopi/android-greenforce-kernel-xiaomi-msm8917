@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2011-2019 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -613,6 +613,9 @@ htt_t2h_lp_msg_handler(void *context, adf_nbuf_t htt_t2h_msg )
             adf_os_mem_free(report);
             break;
         }
+    case HTT_T2H_MSG_TYPE_PPDU_STATS_IND:
+        ol_ppdu_stats_ind_handler(pdev->txrx_pdev, htt_t2h_msg);
+        break;
     default:
         break;
     };
@@ -662,6 +665,8 @@ if (adf_os_unlikely(pdev->rx_ring.rx_reset)) {
             unsigned num_msdu_bytes;
             u_int16_t peer_id;
             u_int8_t tid;
+            u_int32_t msg_len = adf_nbuf_len(htt_t2h_msg);
+            unsigned int calculated_msg_len;
 
             if (adf_os_unlikely(pdev->cfg.is_full_reorder_offload)) {
                 adf_os_print("HTT_T2H_MSG_TYPE_RX_IND not supported with full "
@@ -689,6 +694,34 @@ if (adf_os_unlikely(pdev->rx_ring.rx_reset)) {
                 (HTT_RX_IND_HDR_BYTES + num_msdu_bytes + 3) >> 2;
             num_mpdu_ranges = HTT_RX_IND_NUM_MPDU_RANGES_GET(*(msg_word + 1));
             pdev->rx_ind_msdu_byte_idx = 0;
+
+            if (unlikely(pdev->rx_mpdu_range_offset_words > msg_len)) {
+                adf_print("HTT_T2H_MSG_TYPE_RX_IND, invalid rx_mpdu_range_offset_words %d\n",
+                                      pdev->rx_mpdu_range_offset_words);
+                WARN_ON(1);
+                break;
+            }
+            calculated_msg_len = pdev->rx_mpdu_range_offset_words +
+                                                     (num_mpdu_ranges *
+                                                     (int)sizeof(uint32_t));
+            /*
+             * Check that the addition and multiplication
+             * do not cause integer overflow
+             */
+            if (unlikely(calculated_msg_len <
+                                     pdev->rx_mpdu_range_offset_words)) {
+                        adf_print("HTT_T2H_MSG_TYPE_RX_IND, invalid mpdu_ranges %u\n",
+                                                (num_mpdu_ranges *
+                                                (int)sizeof(uint32_t)));
+                        WARN_ON(1);
+                        break;
+            }
+            if (unlikely(calculated_msg_len > msg_len)) {
+                        adf_print("HTT_T2H_MSG_TYPE_RX_IND, invalid offset_words + mpdu_ranges %u\n",
+                                      calculated_msg_len);
+                        WARN_ON(1);
+                        break;
+            }
 
             if (pdev->cfg.is_high_latency) {
                 /*
@@ -1123,6 +1156,28 @@ htt_rx_ind_noise_floor_chain(htt_pdev_handle pdev, adf_nbuf_t rx_ind_msg,
 	return noise_floor;
 }
 
+int htt_rx_ind_sig(htt_pdev_handle pdev, adf_nbuf_t rx_ind_msg,
+		   uint32_t *sig_a1, uint32_t *sig_a2, uint8_t *type)
+{
+	u_int32_t *msg_word;
+
+        msg_word = (u_int32_t *)
+           (adf_nbuf_data(rx_ind_msg) + HTT_RX_IND_FW_RX_PPDU_DESC_BYTE_OFFSET);
+
+	/* check if the RX_IND message contains valid rx PPDU start info */
+	if (!HTT_RX_IND_START_VALID_GET(*msg_word)) {
+		*sig_a1 = -1;
+		*sig_a2 = -1;
+		*type = -1;
+		return -1;
+	}
+
+	*sig_a1 = *(msg_word + 7);
+	*sig_a2 = *(msg_word + 8);
+	*type = HTT_RX_IND_PREAMBLE_TYPE_GET(*sig_a1);
+	return 0;
+}
+
 /**
  * htt_rx_ind_legacy_rate() - Return the data rate
  * @pdev:        the HTT instance the rx data was received on
@@ -1153,7 +1208,7 @@ htt_rx_ind_noise_floor_chain(htt_pdev_handle pdev, adf_nbuf_t rx_ind_msg,
  *
  * Return the data rate provided in a rx indication message.
  */
-void
+int
 htt_rx_ind_legacy_rate(htt_pdev_handle pdev, adf_nbuf_t rx_ind_msg,
     uint8_t *legacy_rate, uint8_t *legacy_rate_sel)
 {
@@ -1166,11 +1221,12 @@ htt_rx_ind_legacy_rate(htt_pdev_handle pdev, adf_nbuf_t rx_ind_msg,
     if (!HTT_RX_IND_START_VALID_GET(*msg_word)) {
         *legacy_rate = -1;
         *legacy_rate_sel = -1;
-        return;
+        return -1;
     }
 
     *legacy_rate = HTT_RX_IND_LEGACY_RATE_GET(*msg_word);
     *legacy_rate_sel = HTT_RX_IND_LEGACY_RATE_SEL_GET(*msg_word);
+    return 0;
 }
 
 /**

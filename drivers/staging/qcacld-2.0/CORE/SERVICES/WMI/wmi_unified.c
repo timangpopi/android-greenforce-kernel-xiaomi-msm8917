@@ -703,7 +703,7 @@ static u_int8_t* get_wmi_cmd_string(WMI_CMD_ID wmi_command)
 		CASE_RETURN_STRING(WMI_WOW_SET_ACTION_WAKE_UP_CMDID);
 		CASE_RETURN_STRING(WMI_PEER_BWF_REQUEST_CMDID);
 		CASE_RETURN_STRING(WMI_DBGLOG_TIME_STAMP_SYNC_CMDID);
-		CASE_RETURN_STRING(_place_holder_cmd_1);
+		CASE_RETURN_STRING(WMI_RMC_SET_MANUAL_LEADER_CMDID);
 		CASE_RETURN_STRING(WMI_P2P_LISTEN_OFFLOAD_START_CMDID);
 		CASE_RETURN_STRING(WMI_P2P_LISTEN_OFFLOAD_STOP_CMDID);
 		CASE_RETURN_STRING(WMI_PEER_REORDER_QUEUE_SETUP_CMDID);
@@ -810,6 +810,11 @@ static u_int8_t* get_wmi_cmd_string(WMI_CMD_ID wmi_command)
 		CASE_RETURN_STRING(WMI_ROAM_BSS_LOAD_CONFIG_CMDID);
 		CASE_RETURN_STRING(WMI_VDEV_GET_MWS_COEX_INFO_CMDID);
 		CASE_RETURN_STRING(WMI_REQUEST_WLM_STATS_CMDID);
+		CASE_RETURN_STRING(WMI_PDEV_SET_RAP_CONFIG_CMDID);
+		CASE_RETURN_STRING(WMI_STA_TDCC_CONFIG_CMDID);
+		CASE_RETURN_STRING(WMI_ROAM_DEAUTH_CONFIG_CMDID);
+		CASE_RETURN_STRING(WMI_ROAM_IDLE_CONFIG_CMDID);
+		CASE_RETURN_STRING(WMI_IDLE_TRIGGER_MONITOR_CMDID);
 	}
 	return "Invalid WMI cmd";
 }
@@ -1269,8 +1274,8 @@ void __wmi_control_rx(struct wmi_unified *wmi_handle, wmi_buf_t evt_buf)
 
 		idx = wmi_unified_get_event_handler_ix(wmi_handle, id) ;
 		if (idx == -1) {
-			pr_err("%s : event handler is not registered: event id 0x%x\n",
-			       __func__, id);
+			WMA_LOGE("%s : event handler is not registered: event id 0x%x\n",
+				 __func__, id);
 			goto end;
 		}
 
@@ -1288,21 +1293,21 @@ void __wmi_control_rx(struct wmi_unified *wmi_handle, wmi_buf_t evt_buf)
 
 	switch (id) {
 	default:
-		pr_info("%s: Unhandled WMI event %d\n", __func__, id);
+		WMA_LOGE("%s: Unhandled WMI event %d\n", __func__, id);
 		break;
 	case WMI_SERVICE_AVAILABLE_EVENTID:
-		pr_info("%s: WMI UNIFIED SERVICE AVAILABLE event\n", __func__);
+		WMA_LOGD("%s: WMI UNIFIED SERVICE AVAILABLE event\n", __func__);
 		wma_rx_service_available_event(wmi_handle->scn_handle,
 					   wmi_cmd_struct_ptr);
 		break;
 
 	case WMI_SERVICE_READY_EVENTID:
-		pr_info("%s: WMI UNIFIED SERVICE READY event\n", __func__);
+		WMA_LOGD("%s: WMI UNIFIED SERVICE READY event\n", __func__);
 		wma_rx_service_ready_event(wmi_handle->scn_handle,
 					   wmi_cmd_struct_ptr);
 		break;
 	case WMI_READY_EVENTID:
-		pr_info("%s:  WMI UNIFIED READY event\n", __func__);
+		WMA_LOGD("%s:  WMI UNIFIED READY event\n", __func__);
 		wma_rx_ready_event(wmi_handle->scn_handle, wmi_cmd_struct_ptr);
 		break;
 	}

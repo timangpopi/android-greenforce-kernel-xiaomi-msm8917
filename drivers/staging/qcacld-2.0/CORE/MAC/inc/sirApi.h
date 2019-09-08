@@ -1133,6 +1133,7 @@ typedef struct sSirSmeJoinReq
     tANI_U8             cc_switch_mode;
 #endif
     tVOS_CON_MODE       staPersona;             //Persona
+    bool sae_pmk_cached;
     bool                osen_association;
     bool                wps_registration;
     ePhyChanBondState   cbMode;                 // Pass CB mode value in Join.
@@ -1211,7 +1212,6 @@ typedef struct sSirSmeJoinReq
 #ifdef WLAN_FEATURE_FILS_SK
     struct cds_fils_connection_info fils_con_info;
 #endif
-    bool sae_pmk_cached;
     tSirBssDescription  bssDescription;
     /*
      * WARNING: Pls make bssDescription as last variable in struct
@@ -6447,6 +6447,16 @@ typedef struct
     tANI_U32 pending_msdu;
 } tSirWifiWmmAcStat, *tpSirWifiWmmAcStat;
 
+struct driver_txq_states {
+	char *cat_name;
+	int wrr_count;
+	int pending_frms;
+	int pending_bytes;
+	bool active;
+	int discard_frms;
+	int dispatched_frms;
+};
+
 /* Interface statistics - corresponding to 2nd most
  * LSB in wifi statistics bitmap  for getting statistics
  */
@@ -6753,6 +6763,9 @@ struct sir_wifi_ll_ext_period {
  * @rx_mcs_array_len: length of RX mcs stats buffer
  * @peer_stats: peer stats
  * @cca: physical channel CCA stats
+ * @maxtrix: bitmask for antenna used while receiving this stats
+ * @phyerr_count: phy error times
+ * @timestamp: timestamp on target side for this event
  * @stats: pointer to stats data buffer.
  *
  * Structure of the whole statictics is like this:
@@ -6835,6 +6848,9 @@ struct sir_wifi_ll_ext_stats {
 	uint32_t rx_mcs_array_len;
 	struct sir_wifi_ll_ext_peer_stats *peer_stats;
 	struct sir_wifi_chan_cca_stats *cca;
+	uint32_t maxtrix;
+	uint32_t phyerr_count;
+	uint32_t timestamp;
 	uint8_t stats[];
 };
 
@@ -8586,6 +8602,7 @@ struct sme_flush_pending {
  * @cycle_count: cycle count
  * @rx_clear_count: rx clear count
  * @tx_frame_count: TX frame count
+ * @rx_frame_count: RX frame count
  * @clock_freq: clock frequence MHZ
  */
 struct scan_chan_info {
@@ -8595,6 +8612,7 @@ struct scan_chan_info {
 	uint32_t cycle_count;
 	uint32_t rx_clear_count;
 	uint32_t tx_frame_count;
+	uint32_t rx_frame_count;
 	uint32_t clock_freq;
 };
 
