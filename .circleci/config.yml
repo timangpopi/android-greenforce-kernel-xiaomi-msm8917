@@ -6,9 +6,9 @@ jobs:
     steps:
       - run: apt-get -y update && apt-get -y upgrade && apt-get -y install bc binutils g++ build-essential zip curl libstdc++6 git wget
       - run: git clone https://github.com/fadlyas07/android-kernel-xiaomi-msm8917-1.git -b test --depth=1 .
-      - run: wget https://raw.githubusercontent.com/fadlyas07/script-circle/master/circleci-script
-      - run: chmod +x circleci-script
-      - run: bash circleci-script
+      - run: wget https://raw.githubusercontent.com/fadlyas07/script-circle/master/clang-9.0.6
+      - run: chmod +x clang-9.0.6
+      - run: bash clang-9.0.6
 workflows:
   version: 2.1
   cooking:
