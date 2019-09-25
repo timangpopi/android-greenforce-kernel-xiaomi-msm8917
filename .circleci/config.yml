@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   compile:
     docker:
-      - image: ubuntu:19.10
+      - image: ubuntu:19.04
     steps:
       - run: apt-get -y update && apt-get -y upgrade && apt-get -y install bc binutils g++ build-essential zip curl libstdc++6 git wget
       - run: git clone https://github.com/fadlyas07/android-kernel-xiaomi-msm8917-1.git -b test --depth=1 .
