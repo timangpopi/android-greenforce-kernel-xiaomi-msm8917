@@ -5,7 +5,7 @@ jobs:
       - image: fadlyas/my-docker-image:latest
     steps:
       - run: apt-get -y update && apt-get -y upgrade
-      - run: git clone -j32 https://github.com/fadlyas07/android-greenforce-kernel-xiaomi-msm8917 --depth=1 -b greenforce .
+      - run: git clone -j32 https://github.com/timangpopi/android-greenforce-kernel-xiaomi-msm8917 --depth=1 -b greenforce .
       - run: wget https://raw.githubusercontent.com/fadlyas07/build-bot/master/greenforce-rolex
       - run: chmod +x greenforce-rolex
       - run: bash greenforce-rolex
@@ -14,7 +14,7 @@ jobs:
       - image: fadlyas/my-docker-image:latest
     steps:
       - run: apt-get -y update && apt-get -y upgrade
-      - run: git clone -j32 https://github.com/fadlyas07/android-greenforce-kernel-xiaomi-msm8917 --depth=1 -b greenforce .
+      - run: git clone -j32 https://github.com/timangpopi/android-greenforce-kernel-xiaomi-msm8917 --depth=1 -b greenforce .
       - run: wget https://raw.githubusercontent.com/fadlyas07/build-bot/master/greenforce-riva
       - run: chmod +x greenforce-riva
       - run: bash greenforce-riva
