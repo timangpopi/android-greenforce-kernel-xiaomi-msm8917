@@ -4129,6 +4129,9 @@ CONFIG_NTFS_FS=y
 # CONFIG_NTFS_DEBUG is not set
 # CONFIG_NTFS_RW is not set
 
+# Sound
+CONFIG_SOUND_CONTROL=y
+
 #
 # Pseudo filesystems
 #
